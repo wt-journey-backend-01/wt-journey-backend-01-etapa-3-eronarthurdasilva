@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Policial</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .status-badge {
+            @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
+        }
+        .status-aberto {
+            @apply bg-red-100 text-red-800;
+        }
+        .status-solucionado {
+            @apply bg-green-100 text-green-800;
+        }
+        .status-arquivado {
+            @apply bg-blue-100 text-blue-800;
+        }
+        .card {
+            @apply bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Cabeçalho -->
+        <header class="mb-8 text-center">
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">
+                <i class="fas fa-shield-alt mr-3 text-blue-600"></i>
+                Sistema Policial
+            </h1>
+            <p class="text-lg text-gray-600">Gerenciamento de Agentes e Casos</p>
+        </header>
+
+        <!-- Filtros Globais -->
+        <div class="bg-white p-4 rounded-lg shadow mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar Casos</label>
+                    <select id="filtroStatus" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                        <option value="">Todos os status</option>
+                        <option value="aberto">Abertos</option>
+                        <option value="solucionado">Solucionados</option>
+                        <option value="arquivado">Arquivados</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Buscar Casos</label>
+                    <div class="flex">
+                        <input type="text" id="buscaCasos" placeholder="Termo de busca..." 
+                               class="flex-1 p-2 border rounded-l-md focus:ring-2 focus:ring-blue-500">
+                        <button onclick="buscarCasos()" 
+                                class="bg-blue-500 text-white px-4 rounded-r-md hover:bg-blue-600">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button onclick="abrirModalCaso()" 
+                            class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full">
+                        <i class="fas fa-plus mr-2"></i>Novo Caso
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grid Principal -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Seção Agentes -->
+            <div class="card">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <i class="fas fa-user-tie mr-2 text-blue-500"></i>
+                            Agentes
+                        </h2>
+                        <div class="flex space-x-2">
+                            <select id="filtroCargo" onchange="loadAgentes()" 
+                                    class="p-1 border rounded text-sm">
+                                <option value="">Todos os cargos</option>
+                                <option value="delegado">Delegado</option>
+                                <option value="inspetor">Inspetor</option>
+                                <option value="agente">Agente</option>
+                            </select>
+                            <button onclick="loadAgentes()" 
+                                    class="bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="agentesList" class="space-y-4">
+                        <!-- Agentes serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seção Casos -->
+            <div class="card">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <i class="fas fa-folder-open mr-2 text-blue-500"></i>
+                            Casos
+                        </h2>
+                        <button onclick="loadCasos()" 
+                                class="bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div id="casosList" class="space-y-4">
+                        <!-- Casos serão carregados aqui -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Novo Caso -->
+    <div id="modalCaso" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
+            <div class="flex justify-between items-center border-b p-4">
+                <h3 class="text-lg font-semibold">Novo Caso</h3>
+                <button onclick="fecharModalCaso()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="formCaso" class="p-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
+                    <input type="text" name="titulo" required 
+                           class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Descrição *</label>
+                    <textarea name="descricao" rows="3" required 
+                              class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
+                        <select name="status" required 
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
+                            <option value="aberto">Aberto</option>
+                            <option value="solucionado">Solucionado</option>
+                            <option value="arquivado">Arquivado</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Agente *</label>
+                        <select name="agente_id" required 
+                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500" 
+                                id="selectAgente">
+                            <!-- Opções serão preenchidas via JS -->
+                        </select>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="fecharModalCaso()" 
+                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
+                        Salvar Caso
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
