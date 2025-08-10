@@ -2,9 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const db = require('./db/db');
 
-// Importe suas rotas aqui (crie os arquivos se não existirem)
-// const agentesRoutes = require('./routes/agentesRoutes');
-// const casosRoutes = require('./routes/casosRoutes');
+const agentesRoutes = require('./routes/agentesRoutes');
+const casosRoutes = require('./routes/casosRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,10 +22,8 @@ async function testDbConnection() {
 }
 
 app.use(express.json());
-
-// Use suas rotas aqui
-// app.use('/api', agentesRoutes);
-// app.use('/api', casosRoutes);
+app.use('/api', agentesRoutes);
+app.use('/api', casosRoutes);
 
 app.get('/', (req, res) => {
     res.send('API do Departamento de Polícia está no ar!');

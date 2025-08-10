@@ -1,7 +1,3 @@
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
 exports.up = function(knex) {
   return knex.schema
     .createTable('agentes', function (table) {
@@ -15,16 +11,6 @@ exports.up = function(knex) {
       table.string('titulo', 255).notNullable();
       table.text('descricao').notNullable();
       table.enu('status', ['aberto', 'solucionado', 'arquivado']).defaultTo('aberto');
-      table.integer('agente_id').unsigned().references('id').inTable('agentes').onDelete('SET NULL');
+      table.integer('agente_id').unsigned().references('id').inTable('agentes').onDelete('CASCADE');
     });
-};
-
-/**
- * @param { import("knex").Knex } knex
- * @returns { Promise<void> }
- */
-exports.down = function(knex) {
-  return knex.schema
-    .dropTableIfExists('casos')
-    .dropTableIfExists('agentes');
 };

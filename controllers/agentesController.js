@@ -1,11 +1,14 @@
 const agentesRepository = require('../repositories/agentesRepository');
 const { v4: uuidv4 } = require('uuid');
 
-function getAllAgentes(req, res) {
-
-  const agentes = agentesRepository.findAll();
-
-  res.status(200).json(agentes);
+async function getAllAgentes(req, res) {
+  try {
+    const agentes = await agentesRepository.findAll();
+    res.status(200).json(agentes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao buscar agentes.' });
+  }
 }
 
 //Função para busca de agente 
@@ -30,22 +33,20 @@ function getAgenteById(req, res) {
 // Metodo para criar um no agente 
 
 
-function createAgente(req, res) {
+async function createAgente(req, res) {
   const { nome, dataDeIncorporacao, cargo } = req.body;
-  //valida a entrada 
+
   if (!nome || !dataDeIncorporacao || !cargo) {
-    return res.status(400).json({ message: 'Todos os campos são obrigatorios.'});
+    return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
   }
 
-  const newAgente = {
-    id: uuidv4(),
-    nome,
-    dataDeIncorporacao,
-    cargo
-  };
-
-  const createAgente = agentesRepository.create(newAgente);
-  res.status(201).json(createAgente);
+  try {
+    const [createdAgente] = await agentesRepository.create({ nome, dataDeIncorporacao, cargo });
+    res.status(201).json(createdAgente);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao criar agente.' });
+  }
 }
 
 //Metodo para atualizar dados dos agentes
@@ -82,22 +83,34 @@ function patchAgente(req, res){
 }
 
 //Metodo para deletar agentes
-function deleteAgente(req, res) {
+async function deleteAgente(req, res) {
   const { id } = req.params;
-  const deleted = agentesRepository.remove(id);
 
-  if(!deleted) {
-    return res.status(404).json({ message: "Agente não encontrado ou deletado."});
+  try {
+    const deleted = await agentesRepository.remove(id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: 'Agente não encontrado ou já deletado.' });
+    }
+
+    res.status(204).end();
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao deletar agente.' });
   }
-
-  res.status(204).end;
 }
+
 // Funções bonus 
-function getAgentesByCargo(req, res) {
-    const { cargo } = req.query;
-    const agentes = agentesRepository.findAll()
-        .filter(agente => agente.cargo.toLowerCase() === cargo.toLowerCase());
+async function getAgentesByCargo(req, res) {
+  const { cargo } = req.query;
+
+  try {
+    const agentes = await agentesRepository.findByCargo(cargo);
     res.status(200).json(agentes);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro ao buscar agentes por cargo.' });
+  }
 }
 
 function getAgentesSorted(req, res) {
