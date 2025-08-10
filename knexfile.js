@@ -1,5 +1,8 @@
 require('dotenv').config();
 
+/**
+ * @type { Object.<string, import("knex").Knex.Config> }
+ */
 module.exports = {
   development: {
     client: 'pg',
@@ -20,7 +23,7 @@ module.exports = {
   ci: {
     client: 'pg',
     connection: {
-      host: 'postgres',
+      host: 'postgres', // Nome do serviço no docker-compose
       port: 5432,
       user: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,

@@ -1,20 +1,19 @@
 # Instruções de Setup e Execução
 
-Este documento descreve os passos necessários para configurar e rodar a aplicação do Departamento de Polícia.
+Este documento descreve os passos necessários para configurar e rodar a aplicação do Departamento de Polícia localmente. Siga os passos na ordem correta para garantir que o ambiente funcione como esperado.
 
 ## Pré-requisitos
 
 - [Docker](https://www.docker.com/get-started) e [Docker Compose](https://docs.docker.com/compose/install/) instalados.
-- [Node.js](https://nodejs.org/) (versão 14 ou superior) e [NPM](https://www.npmjs.com/) instalados.
+- [Node.js](https://nodejs.org/) (versão 16 ou superior) e [NPM](https://www.npmjs.com/) instalados.
 
-## 1. Configuração do Ambiente
+## Passo a Passo para Execução
 
-Primeiro, clone o repositório e instale as dependências do projeto.
+### 1. Instalar Dependências
+
+Se você acabou de clonar o projeto, o primeiro passo é instalar todas as dependências necessárias.
 
 ```bash
-# Navegue para a pasta do projeto
-cd <nome-do-repositorio>
-
 # Instale as dependências
 npm install
 ```
