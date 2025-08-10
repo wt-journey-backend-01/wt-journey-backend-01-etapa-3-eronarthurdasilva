@@ -1,144 +1,202 @@
-const casosRepository = require("../repositories/casosRepository");
+const casosRepository = require('../repositories/casosRepository');
+const agentesRepository = require('../repositories/agentesRepository');
 
-//função para pegar todos os casos 
-function getAllCasos(req, res) {
-    const casos = casosRepository.findAll();
-    res.status(200).json(casos);
+async function getAllCasos(req, res) {
+    try {
+        const casos = await casosRepository.findAll();
+        res.status(200).json(casos);
+    } catch (error) {
+        console.error('Erro ao buscar casos:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
 }
 
+async function createCaso(req, res) {
+    try {
+        const { titulo, descricao, status, agente_id } = req.body;
+        
+        if (!titulo || !descricao || !status || !agente_id) {
+            return res.status(400).json({ message: "Todos os campos devem ser preenchidos." });
+        }
 
-function createCaso(req, res){
-    const { id, titulo, descricao, status, agente_id } = req.body;
-    
-    if (!id || !titulo || !descricao || !status || !agente_id) {
-        return res.status(400).json({ Message: "Todos os campos devem ser preenchidos."});
-    }
-
-    const statusValido = ["aberto", "solucionado", "arquivado"];
-    if (!statusValido.includes(status)) {
-        return res.status(400).json({
-            Message: "Status inválido. Use 'aberto' ou 'solucionado' ou 'arquivado'."
-        });
-    }
-
-
-    const casoNovo = { id: uuidv4(), titulo, descricao, status, agente_id };
-    const casoCriado = casosRepository.create(casoNovo);
-    const agenteExiste = agentesRepository.findById(agente_id);
-    if (!agenteExiste) {
-        return res.status(400).json({ message: "Agente não encontrado" });
-    }
-
-    return res.status(201).json(casoCriado);
-}
-
-// Funçaõ para achar os casos pelo id 
-function getCasoById(req, res) {
-    const { id } = req.params;
-
-    const caso = casosRepository.findById(id);
-
-    if (!caso) {
-        return res.status(404).json({ Message: "Caso não encontrado." });
-    }
-    
-    return res.status(200).json(caso);
-}
-
-//Função para atualizar os dados dos casos 
-function updateCaso(req, res) {
-
-    const { id } = req.params;
-
-    const { titulo, descricao, status, agente_id } = req.body;
-
-    if (!titulo || !descricao || !status || !agente_id) {
-        return res.status(400).json({ message: "Todos os campos precisão ser preenchidos"});
-    }
-
-    const statusValido = ["aberto", "solucionado", "arquivado"];
-
-    if(!statusValido.includes(status.toLowerCase())) {
-        return res.status(400).json({
-            message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
-        });
-    }
-
-    const updated = casosRepository.update(id, { titulo, descricao, status: status.toLowerCase(), agente_id });
-
-    if (!updated) {
-        return res.status(404).json({ message: "Caso não encontrado" });
-    }
-
-    return res.status(200).json(updated);
-
-}
-
-// Função para atualização partical 
-function patchCaso(req, res) {
-
-    const { id } = req.params;
-    const updateData = req.body;
-
-    if (updateData.status) {
-        const statusValido = ["aberto", "solucionado", "arquivado" ];
-
-        if (!statusValido.includes(updateData.status.toLowerCase())) {
-
+        const statusValido = ["aberto", "solucionado", "arquivado"];
+        if (!statusValido.includes(status.toLowerCase())) {
             return res.status(400).json({
-                message: "Status inválido. Use 'aberto' , 'solucionado' ou 'arquivado'."
+                message: "Status inválido. Use 'aberto' ou 'solucionado' ou 'arquivado'."
             });
         }
 
-        updateData.status = updateData.status.toLowerCase();
+        // Verificar se o agente existe
+        const agenteExiste = await agentesRepository.findById(agente_id);
+        if (!agenteExiste) {
+            return res.status(400).json({ message: "Agente não encontrado" });
+        }
 
+        const casoNovo = { 
+            titulo, 
+            descricao, 
+            status: status.toLowerCase(), 
+            agente_id 
+        };
+        
+        const casoCriado = await casosRepository.create(casoNovo);
+        return res.status(201).json(casoCriado[0]);
+    } catch (error) {
+        console.error('Erro ao criar caso:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
     }
+}
 
-    const updated = casosRepository.partialUpdate(id , updateData);
+async function getCasoById(req, res) {
+    try {
+        const { id } = req.params;
 
-    if (!updated) {
-        return res.status(404).json({ message: "Caso não encontrado"});
+        const caso = await casosRepository.findById(id);
+
+        if (!caso) {
+            return res.status(404).json({ message: "Caso não encontrado." });
+        }
+        
+        return res.status(200).json(caso);
+    } catch (error) {
+        console.error('Erro ao buscar caso por ID:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
     }
-
-    return res.status(200).json(updated);
-
 }
 
-// Função para remover casos
-function deleteCaso(req, res) {
-    
-    const { id } = req.params;
+async function updateCaso(req, res) {
+    try {
+        const { id } = req.params;
 
-    const deleted = casosRepository.remove(id);
+        const { titulo, descricao, status, agente_id } = req.body;
 
-    if (!deleted) {
-        return res.status(404).json({ message: "Caso não encontrado" });
+        if (!titulo || !descricao || !status || !agente_id) {
+            return res.status(400).json({ message: "Todos os campos precisam ser preenchidos" });
+        }
+
+        const statusValido = ["aberto", "solucionado", "arquivado"];
+
+        if(!statusValido.includes(status.toLowerCase())) {
+            return res.status(400).json({
+                message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
+            });
+        }
+
+        // Verificar se o agente existe
+        const agenteExiste = await agentesRepository.findById(agente_id);
+        if (!agenteExiste) {
+            return res.status(400).json({ message: "Agente não encontrado" });
+        }
+
+        const updated = await casosRepository.update(id, { 
+            titulo, 
+            descricao, 
+            status: status.toLowerCase(), 
+            agente_id 
+        });
+
+        if (!updated || updated.length === 0) {
+            return res.status(404).json({ message: "Caso não encontrado" });
+        }
+
+        return res.status(200).json(updated[0]);
+    } catch (error) {
+        console.error('Erro ao atualizar caso:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
     }
-
-    return res.status(204).end();
-
-}
-// Funções bonus 
-function getCasosByAgente(req, res) {
-    const { agente_id } = req.query;
-    const casos = casosRepository.findAll().filter(caso => caso.agente_id === agente_id);
-    res.status(200).json(casos);
 }
 
-function getCasosByStatus(req, res) {
-    const { status } = req.query;
-    const casos = casosRepository.findAll().filter(caso => caso.status === status);
-    res.status(200).json(casos);
+async function patchCaso(req, res) {
+    try {
+        const { id } = req.params;
+        const updateData = req.body;
+
+        if (updateData.status) {
+            const statusValido = ["aberto", "solucionado", "arquivado"];
+
+            if (!statusValido.includes(updateData.status.toLowerCase())) {
+                return res.status(400).json({
+                    message: "Status inválido. Use 'aberto' , 'solucionado' ou 'arquivado'."
+                });
+            }
+
+            updateData.status = updateData.status.toLowerCase();
+        }
+
+        // Verificar se o agente existe, se for fornecido
+        if (updateData.agente_id) {
+            const agenteExiste = await agentesRepository.findById(updateData.agente_id);
+            if (!agenteExiste) {
+                return res.status(400).json({ message: "Agente não encontrado" });
+            }
+        }
+
+        const updated = await casosRepository.partialUpdate(id, updateData);
+
+        if (!updated || updated.length === 0) {
+            return res.status(404).json({ message: "Caso não encontrado" });
+        }
+
+        return res.status(200).json(updated[0]);
+    } catch (error) {
+        console.error('Erro ao atualizar parcialmente caso:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
 }
 
-function searchCasos(req, res) {
-    const { q } = req.query;
-    const casos = casosRepository.findAll().filter(caso => 
-        caso.titulo.includes(q) || caso.descricao.includes(q)
-    );
-    res.status(200).json(casos);
+async function deleteCaso(req, res) {
+    try {
+        const { id } = req.params;
+
+        const deleted = await casosRepository.remove(id);
+
+        if (!deleted) {
+            return res.status(404).json({ message: "Caso não encontrado" });
+        }
+
+        return res.status(204).end();
+    } catch (error) {
+        console.error('Erro ao deletar caso:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
 }
 
+async function getCasosByAgente(req, res) {
+    try {
+        const { agente_id } = req.query;
+        const casos = await casosRepository.findByAgenteId(agente_id);
+        res.status(200).json(casos);
+    } catch (error) {
+        console.error('Erro ao buscar casos por agente:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+}
+
+async function getCasosByStatus(req, res) {
+    try {
+        const { status } = req.query;
+        const casos = await casosRepository.findAll();
+        const filteredCasos = casos.filter(caso => caso.status === status);
+        res.status(200).json(filteredCasos);
+    } catch (error) {
+        console.error('Erro ao buscar casos por status:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+}
+
+async function searchCasos(req, res) {
+    try {
+        const { q } = req.query;
+        const casos = await casosRepository.findAll();
+        const filteredCasos = casos.filter(caso => 
+            caso.titulo.includes(q) || caso.descricao.includes(q)
+        );
+        res.status(200).json(filteredCasos);
+    } catch (error) {
+        console.error('Erro ao pesquisar casos:', error);
+        res.status(500).json({ message: 'Erro interno no servidor.' });
+    }
+}
 
 module.exports = {
     getAllCasos,

@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema Policial</title>
+    <title>Sistema de Gerenciamento Policial</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
     <style>
         .status-badge {
             @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium;
@@ -25,45 +29,88 @@
     </style>
 </head>
 <body class="bg-gray-50">
+    <!-- Notificação -->
+    <div id="notification" class="notification notification-success hidden">
+        <div class="flex justify-between items-center">
+            <span id="notification-message">Operação realizada com sucesso!</span>
+            <button onclick="closeNotification()" class="text-gray-500 hover:text-gray-700">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Área de Notificação -->
+    <div id="notification-area" class="fixed top-4 right-4 z-50"></div>
+
     <div class="container mx-auto px-4 py-8">
         <!-- Cabeçalho -->
         <header class="mb-8 text-center">
-            <h1 class="text-4xl font-bold text-gray-800 mb-2">
-                <i class="fas fa-shield-alt mr-3 text-blue-600"></i>
-                Sistema Policial
-            </h1>
-            <p class="text-lg text-gray-600">Gerenciamento de Agentes e Casos</p>
+            <div class="flex justify-center items-center mb-3">
+                <div class="bg-blue-600 text-white p-3 rounded-full mr-3 shadow-lg">
+                    <i class="fas fa-shield-alt text-2xl"></i>
+                </div>
+                <h1 class="text-4xl font-bold text-gray-800">
+                    Sistema de Gerenciamento Policial
+                </h1>
+            </div>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">Plataforma integrada para gerenciamento de agentes e casos policiais, com recursos avançados de busca, filtros e controle de status.</p>
         </header>
 
         <!-- Filtros Globais -->
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Filtrar Casos</label>
-                    <select id="filtroStatus" class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                        <option value="">Todos os status</option>
-                        <option value="aberto">Abertos</option>
-                        <option value="solucionado">Solucionados</option>
-                        <option value="arquivado">Arquivados</option>
-                    </select>
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8 border border-gray-200">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <i class="fas fa-filter text-blue-600 mr-2"></i>
+                Filtros e Ações
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Filtrar por Status</label>
+                    <div class="relative">
+                        <select id="filtroStatus" class="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 pl-10 appearance-none">
+                            <option value="">Todos os status</option>
+                            <option value="aberto">Abertos</option>
+                            <option value="solucionado">Solucionados</option>
+                            <option value="arquivado">Arquivados</option>
+                        </select>
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-tasks text-gray-400"></i>
+                        </div>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            <i class="fas fa-chevron-down text-gray-400"></i>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Buscar Casos</label>
-                    <div class="flex">
-                        <input type="text" id="buscaCasos" placeholder="Termo de busca..." 
-                               class="flex-1 p-2 border rounded-l-md focus:ring-2 focus:ring-blue-500">
+                <div class="space-y-2">
+                    <label class="block text-sm font-medium text-gray-700">Buscar Casos</label>
+                    <div class="relative">
+                        <input type="text" id="buscaCasos" placeholder="Buscar por título ou descrição..." 
+                               class="w-full p-3 border rounded-md focus:ring-2 focus:ring-blue-500 pl-10">
+                        <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                            <i class="fas fa-search text-gray-400"></i>
+                        </div>
                         <button onclick="buscarCasos()" 
-                                class="bg-blue-500 text-white px-4 rounded-r-md hover:bg-blue-600">
-                            <i class="fas fa-search"></i>
+                                class="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-arrow-right"></i>
                         </button>
                     </div>
                 </div>
                 <div class="flex items-end">
                     <button onclick="abrirModalCaso()" 
-                            class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 w-full">
-                        <i class="fas fa-plus mr-2"></i>Novo Caso
+                            class="btn-success w-full p-3 rounded-md flex items-center justify-center transition-all transform hover:scale-105">
+                        <i class="fas fa-plus-circle mr-2"></i>
+                        <span>Registrar Novo Caso</span>
                     </button>
                 </div>
+            </div>
+            <div class="mt-4 pt-4 border-t border-gray-200 flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Use os filtros acima para encontrar casos específicos
+                </div>
+                <button onclick="loadCasos()" class="text-blue-600 hover:text-blue-800 flex items-center">
+                    <i class="fas fa-sync-alt mr-1"></i>
+                    Atualizar Dados
+                </button>
             </div>
         </div>
 
@@ -71,47 +118,81 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             <!-- Seção Agentes -->
             <div class="card">
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-gray-800">
-                            <i class="fas fa-user-tie mr-2 text-blue-500"></i>
-                            Agentes
-                        </h2>
-                        <div class="flex space-x-2">
+                <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-4 flex items-center">
+                    <div class="bg-white text-blue-600 p-2 rounded-full mr-3">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold">Agentes Policiais</h2>
+                    <div class="ml-auto flex space-x-2">
+                        <div class="relative">
                             <select id="filtroCargo" onchange="loadAgentes()" 
-                                    class="p-1 border rounded text-sm">
+                                    class="bg-blue-700 text-white p-2 rounded border border-blue-500 pr-8 appearance-none focus:outline-none focus:ring-2 focus:ring-white">
                                 <option value="">Todos os cargos</option>
                                 <option value="delegado">Delegado</option>
                                 <option value="inspetor">Inspetor</option>
                                 <option value="agente">Agente</option>
                             </select>
-                            <button onclick="loadAgentes()" 
-                                    class="bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
-                                <i class="fas fa-sync-alt"></i>
-                            </button>
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                                <i class="fas fa-chevron-down text-blue-300"></i>
+                            </div>
                         </div>
+                        <button onclick="loadAgentes()" 
+                                class="bg-blue-700 hover:bg-blue-900 text-white p-2 rounded transition-colors">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
                     </div>
-                    <div id="agentesList" class="space-y-4">
+                </div>
+                <div class="p-0 divide-y divide-gray-100">
+                    <div class="p-4 bg-gray-50 text-sm text-gray-600 flex justify-between items-center">
+                        <span><i class="fas fa-info-circle mr-1"></i> Mostrando todos os agentes ativos</span>
+                        <button onclick="abrirModalAgente()" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-plus-circle mr-1"></i> Novo Agente
+                        </button>
+                    </div>
+                    <div id="agentesList" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                         <!-- Agentes serão carregados aqui -->
+                        <div class="p-4 text-center text-gray-500">
+                            <div class="loader mx-auto mb-2"></div>
+                            <p>Carregando agentes...</p>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Seção Casos -->
             <div class="card">
-                <div class="p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-semibold text-gray-800">
-                            <i class="fas fa-folder-open mr-2 text-blue-500"></i>
-                            Casos
-                        </h2>
+                <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 flex items-center">
+                    <div class="bg-white text-indigo-600 p-2 rounded-full mr-3">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <h2 class="text-xl font-semibold">Casos Policiais</h2>
+                    <div class="ml-auto">
                         <button onclick="loadCasos()" 
-                                class="bg-blue-500 text-white p-1 rounded hover:bg-blue-600">
+                                class="bg-indigo-700 hover:bg-indigo-900 text-white p-2 rounded transition-colors">
                             <i class="fas fa-sync-alt"></i>
                         </button>
                     </div>
-                    <div id="casosList" class="space-y-4">
+                </div>
+                <div class="p-0 divide-y divide-gray-100">
+                    <div class="p-4 bg-gray-50 text-sm text-gray-600 flex justify-between items-center">
+                        <span id="casosSummary"><i class="fas fa-info-circle mr-1"></i> Mostrando todos os casos</span>
+                        <div class="flex space-x-2">
+                            <button onclick="exportarCasos()" class="text-gray-600 hover:text-gray-800 tooltip">
+                                <i class="fas fa-download"></i>
+                                <span class="tooltip-text">Exportar casos</span>
+                            </button>
+                            <button onclick="imprimirCasos()" class="text-gray-600 hover:text-gray-800 tooltip">
+                                <i class="fas fa-print"></i>
+                                <span class="tooltip-text">Imprimir lista</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="casosList" class="divide-y divide-gray-100 max-h-96 overflow-y-auto">
                         <!-- Casos serão carregados aqui -->
+                        <div class="p-4 text-center text-gray-500">
+                            <div class="loader mx-auto mb-2"></div>
+                            <p>Carregando casos...</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -119,53 +200,178 @@
     </div>
 
     <!-- Modal para Novo Caso -->
-    <div id="modalCaso" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
-        <div class="bg-white rounded-lg shadow-xl w-full max-w-md">
-            <div class="flex justify-between items-center border-b p-4">
-                <h3 class="text-lg font-semibold">Novo Caso</h3>
-                <button onclick="fecharModalCaso()" class="text-gray-500 hover:text-gray-700">
-                    <i class="fas fa-times"></i>
-                </button>
+    <div id="modalCaso" class="modal" onclick="closeModalOnBackdrop(event, 'modalCaso')">
+        <div class="modal-content w-full max-w-lg">
+            <div class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-5 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="bg-white text-blue-600 p-2 rounded-full mr-3">
+                            <i class="fas fa-folder-plus"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Registrar Novo Caso</h3>
+                    </div>
+                    <button onclick="fecharModalCaso()" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
-            <form id="formCaso" class="p-4 space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Título *</label>
-                    <input type="text" name="titulo" required 
-                           class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Descrição *</label>
-                    <textarea name="descricao" rows="3" required 
-                              class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500"></textarea>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Status *</label>
-                        <select name="status" required 
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500">
-                            <option value="aberto">Aberto</option>
-                            <option value="solucionado">Solucionado</option>
-                            <option value="arquivado">Arquivado</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Agente *</label>
-                        <select name="agente_id" required 
-                                class="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500" 
-                                id="selectAgente">
-                            <!-- Opções serão preenchidas via JS -->
-                        </select>
+            <form id="formCaso" class="p-6 space-y-5 bg-white rounded-b-lg">
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-gray-700">Título do Caso *</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-heading text-gray-400"></i>
+                        </div>
+                        <input type="text" name="titulo" required 
+                               placeholder="Ex: Roubo na Avenida Principal"
+                               class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                     </div>
                 </div>
-                <div class="flex justify-end space-x-3 pt-4">
-                    <button type="button" onclick="fecharModalCaso()" 
-                            class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded-md">
-                        Cancelar
+                
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-gray-700">Descrição Detalhada *</label>
+                    <div class="relative">
+                        <div class="absolute top-3 left-3 pointer-events-none">
+                            <i class="fas fa-align-left text-gray-400"></i>
+                        </div>
+                        <textarea name="descricao" rows="4" required 
+                                  placeholder="Descreva os detalhes do caso..."
+                                  class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-gray-700">Status do Caso *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-tasks text-gray-400"></i>
+                            </div>
+                            <select name="status" required 
+                                    class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                                <option value="aberto">Aberto</option>
+                                <option value="solucionado">Solucionado</option>
+                                <option value="arquivado">Arquivado</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-gray-700">Agente Responsável *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-user-shield text-gray-400"></i>
+                            </div>
+                            <select name="agente_id" required 
+                                    class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none" 
+                                    id="selectAgente">
+                                <!-- Opções serão preenchidas via JS -->
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="text-xs text-gray-500 mb-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Todos os campos marcados com * são obrigatórios
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="fecharModalCaso()" 
+                                class="px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors">
+                            <i class="fas fa-times mr-1"></i> Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+                            <i class="fas fa-save mr-1"></i> Salvar Caso
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para Novo Agente -->
+    <div id="modalAgente" class="modal" onclick="closeModalOnBackdrop(event, 'modalAgente')">
+        <div class="modal-content w-full max-w-lg">
+            <div class="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-5 rounded-t-lg">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center">
+                        <div class="bg-white text-blue-600 p-2 rounded-full mr-3">
+                            <i class="fas fa-user-plus"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold">Registrar Novo Agente</h3>
+                    </div>
+                    <button onclick="fecharModalAgente()" class="text-white hover:text-gray-200 transition-colors">
+                        <i class="fas fa-times"></i>
                     </button>
-                    <button type="submit" 
-                            class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md">
-                        Salvar Caso
-                    </button>
+                </div>
+            </div>
+            <form id="formAgente" class="p-6 space-y-5 bg-white rounded-b-lg">
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-gray-700">Nome Completo *</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-user text-gray-400"></i>
+                        </div>
+                        <input type="text" name="nome" required 
+                               placeholder="Ex: João da Silva"
+                               class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-gray-700">Data de Incorporação *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-calendar-alt text-gray-400"></i>
+                            </div>
+                            <input type="date" name="dataDeIncorporacao" required 
+                                   class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-1">
+                        <label class="block text-sm font-medium text-gray-700">Cargo *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fas fa-id-badge text-gray-400"></i>
+                            </div>
+                            <select name="cargo" required 
+                                    class="w-full pl-10 p-3 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none">
+                                <option value="delegado">Delegado</option>
+                                <option value="inspetor">Inspetor</option>
+                                <option value="agente">Agente</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                <i class="fas fa-chevron-down text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pt-4 border-t border-gray-200">
+                    <div class="text-xs text-gray-500 mb-4">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        Todos os campos marcados com * são obrigatórios
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="fecharModalAgente()" 
+                                class="px-5 py-2 bg-gray-200 hover:bg-gray-300 rounded-md transition-colors">
+                            <i class="fas fa-times mr-1"></i> Cancelar
+                        </button>
+                        <button type="submit" 
+                                class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">
+                            <i class="fas fa-save mr-1"></i> Salvar Agente
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>

@@ -1,10 +1,4 @@
 const db = require('../db/db');
-const agentesRepository = require('../repositories/agentesRepository');
-
-test('Deve retornar todos os agentes', async () => {
-  const agentes = await agentesRepository.findAll();
-  expect(agentes).toBeInstanceOf(Array);
-});
 
 const findAll = () => {
     return db('agentes').select('*');
@@ -22,16 +16,12 @@ const update = (id, agente) => {
     return db('agentes').where({ id }).update(agente).returning('*');
 };
 
+const partialUpdate = (id, agente) => {
+    return db('agentes').where({ id }).update(agente).returning('*');
+};
+
 const remove = (id) => {
     return db('agentes').where({ id }).del();
-};
-
-const findByCargo = (cargo) => {
-  return db('agentes').whereRaw('LOWER(cargo) = ?', [cargo.toLowerCase()]);
-};
-
-const findSortedByDate = (sortOrder = 'asc') => {
-  return db('agentes').orderBy('dataDeIncorporacao', sortOrder);
 };
 
 module.exports = {
@@ -39,5 +29,6 @@ module.exports = {
     findById,
     create,
     update,
+    partialUpdate,
     remove
 };
