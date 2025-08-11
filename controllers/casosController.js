@@ -19,10 +19,20 @@ async function createCaso(req, res) {
             return res.status(400).json({ message: "Todos os campos devem ser preenchidos." });
         }
 
+        // Validação do título (não pode ser string vazia após trim)
+        if (titulo.trim() === '') {
+            return res.status(400).json({ message: 'Título não pode ser vazio.' });
+        }
+
+        // Validação da descrição (não pode ser string vazia após trim)
+        if (descricao.trim() === '') {
+            return res.status(400).json({ message: 'Descrição não pode ser vazia.' });
+        }
+
         const statusValido = ["aberto", "solucionado", "arquivado"];
         if (!statusValido.includes(status.toLowerCase())) {
             return res.status(400).json({
-                message: "Status inválido. Use 'aberto' ou 'solucionado' ou 'arquivado'."
+                message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
             });
         }
 
@@ -33,10 +43,11 @@ async function createCaso(req, res) {
         }
 
         const casoNovo = { 
-            titulo, 
-            descricao, 
+            titulo: titulo.trim(), 
+            descricao: descricao.trim(), 
             status: status.toLowerCase(), 
-            agente_id 
+            agente_id,
+            data_abertura: new Date().toISOString().split('T')[0]
         };
         
         const casoCriado = await casosRepository.create(casoNovo);
@@ -74,9 +85,19 @@ async function updateCaso(req, res) {
             return res.status(400).json({ message: "Todos os campos precisam ser preenchidos" });
         }
 
+        // Validação do título (não pode ser string vazia após trim)
+        if (titulo.trim() === '') {
+            return res.status(400).json({ message: 'Título não pode ser vazio.' });
+        }
+
+        // Validação da descrição (não pode ser string vazia após trim)
+        if (descricao.trim() === '') {
+            return res.status(400).json({ message: 'Descrição não pode ser vazia.' });
+        }
+
         const statusValido = ["aberto", "solucionado", "arquivado"];
 
-        if(!statusValido.includes(status.toLowerCase())) {
+        if (!statusValido.includes(status.toLowerCase())) {
             return res.status(400).json({
                 message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
             });
@@ -89,8 +110,8 @@ async function updateCaso(req, res) {
         }
 
         const updated = await casosRepository.update(id, { 
-            titulo, 
-            descricao, 
+            titulo: titulo.trim(), 
+            descricao: descricao.trim(), 
             status: status.toLowerCase(), 
             agente_id 
         });

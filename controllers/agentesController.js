@@ -1,5 +1,15 @@
 const agentesRepository = require('../repositories/agentesRepository');
 
+// Função para validar datas
+function isValidDate(dateString) {
+  const date = new Date(dateString);
+  if (isNaN(date)) return false;
+  
+  // Verificar se a data não está no futuro
+  const today = new Date();
+  return date <= today;
+}
+
 async function getAllAgentes(req, res) {
   try {
     const agentes = await agentesRepository.findAll();
@@ -35,10 +45,25 @@ async function createAgente(req, res) {
       return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
     }
 
+    // Validação do nome (não pode ser string vazia após trim)
+    if (nome.trim() === '') {
+      return res.status(400).json({ message: 'Nome não pode ser vazio.' });
+    }
+
+    // Validação da data
+    if (!isValidDate(dataDeIncorporacao)) {
+      return res.status(400).json({ message: 'Data de incorporação inválida ou no futuro.' });
+    }
+
+    // Validação do cargo (não pode ser string vazia após trim)
+    if (cargo.trim() === '') {
+      return res.status(400).json({ message: 'Cargo não pode ser vazio.' });
+    }
+
     const newAgente = {
-      nome,
+      nome: nome.trim(),
       dataDeIncorporacao,
-      cargo
+      cargo: cargo.trim()
     };
 
     const createdAgente = await agentesRepository.create(newAgente);
@@ -58,7 +83,26 @@ async function updateAgente(req, res) {
       return res.status(400).json({ message: "Todos os campos são obrigatórios" });
     }
 
-    const updatedAgente = await agentesRepository.update(id, { nome, dataDeIncorporacao, cargo });
+    // Validação do nome (não pode ser string vazia após trim)
+    if (nome.trim() === '') {
+      return res.status(400).json({ message: 'Nome não pode ser vazio.' });
+    }
+
+    // Validação da data
+    if (!isValidDate(dataDeIncorporacao)) {
+      return res.status(400).json({ message: 'Data de incorporação inválida ou no futuro.' });
+    }
+
+    // Validação do cargo (não pode ser string vazia após trim)
+    if (cargo.trim() === '') {
+      return res.status(400).json({ message: 'Cargo não pode ser vazio.' });
+    }
+
+    const updatedAgente = await agentesRepository.update(id, { 
+      nome: nome.trim(), 
+      dataDeIncorporacao, 
+      cargo: cargo.trim() 
+    });
 
     if (!updatedAgente || updatedAgente.length === 0) {
       return res.status(404).json({ message: "Agente não encontrado." });

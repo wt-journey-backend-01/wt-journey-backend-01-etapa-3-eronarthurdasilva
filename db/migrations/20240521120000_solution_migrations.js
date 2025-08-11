@@ -11,6 +11,14 @@ exports.up = function(knex) {
       table.string('titulo', 255).notNullable();
       table.text('descricao').notNullable();
       table.enu('status', ['aberto', 'solucionado', 'arquivado']).defaultTo('aberto');
+      table.date('data_abertura').defaultTo(knex.fn.now());
       table.integer('agente_id').unsigned().references('id').inTable('agentes').onDelete('CASCADE');
     });
+};
+
+exports.down = function(knex) {
+  return knex.schema
+    .dropTableIfExists('casos')
+    .dropTableIfExists('agentes');
+}
 };
