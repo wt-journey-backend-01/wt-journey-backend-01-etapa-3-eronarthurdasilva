@@ -20,5 +20,4 @@ exports.down = function(knex) {
   return knex.schema
     .dropTableIfExists('casos')
     .dropTableIfExists('agentes');
-}
 };

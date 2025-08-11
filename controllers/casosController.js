@@ -132,12 +132,33 @@ async function patchCaso(req, res) {
         const { id } = req.params;
         const updateData = req.body;
 
+        // Verificar se o payload não está vazio
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({ message: "Nenhum dado fornecido para atualização." });
+        }
+
+        // Validação do título (não pode ser string vazia após trim)
+        if (updateData.titulo !== undefined) {
+            if (updateData.titulo.trim() === '') {
+                return res.status(400).json({ message: 'Título não pode ser vazio.' });
+            }
+            updateData.titulo = updateData.titulo.trim();
+        }
+
+        // Validação da descrição (não pode ser string vazia após trim)
+        if (updateData.descricao !== undefined) {
+            if (updateData.descricao.trim() === '') {
+                return res.status(400).json({ message: 'Descrição não pode ser vazia.' });
+            }
+            updateData.descricao = updateData.descricao.trim();
+        }
+
         if (updateData.status) {
             const statusValido = ["aberto", "solucionado", "arquivado"];
 
             if (!statusValido.includes(updateData.status.toLowerCase())) {
                 return res.status(400).json({
-                    message: "Status inválido. Use 'aberto' , 'solucionado' ou 'arquivado'."
+                    message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
                 });
             }
 
@@ -196,8 +217,22 @@ async function getCasosByAgente(req, res) {
 async function getCasosByStatus(req, res) {
     try {
         const { status } = req.query;
+        
+        if (!status || status.trim() === '') {
+            return res.status(400).json({ message: 'Status não pode ser vazio.' });
+        }
+        
+        const statusValido = ["aberto", "solucionado", "arquivado"];
+        const statusLowerCase = status.toLowerCase().trim();
+        
+        if (!statusValido.includes(statusLowerCase)) {
+            return res.status(400).json({
+                message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
+            });
+        }
+        
         const casos = await casosRepository.findAll();
-        const filteredCasos = casos.filter(caso => caso.status === status);
+        const filteredCasos = casos.filter(caso => caso.status === statusLowerCase);
         res.status(200).json(filteredCasos);
     } catch (error) {
         console.error('Erro ao buscar casos por status:', error);
@@ -208,9 +243,16 @@ async function getCasosByStatus(req, res) {
 async function searchCasos(req, res) {
     try {
         const { q } = req.query;
+        
+        if (!q || q.trim() === '') {
+            return res.status(400).json({ message: 'Termo de busca não pode ser vazio.' });
+        }
+        
+        const searchTerm = q.trim().toLowerCase();
         const casos = await casosRepository.findAll();
         const filteredCasos = casos.filter(caso => 
-            caso.titulo.includes(q) || caso.descricao.includes(q)
+            caso.titulo.toLowerCase().includes(searchTerm) || 
+            caso.descricao.toLowerCase().includes(searchTerm)
         );
         res.status(200).json(filteredCasos);
     } catch (error) {

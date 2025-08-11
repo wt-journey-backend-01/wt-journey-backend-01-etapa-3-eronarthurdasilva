@@ -120,6 +120,34 @@ async function patchAgente(req, res) {
     const { id } = req.params;
     const partialData = req.body;
 
+    // Verificar se o payload não está vazio
+    if (Object.keys(partialData).length === 0) {
+      return res.status(400).json({ message: "Nenhum dado fornecido para atualização." });
+    }
+
+    // Validação do nome (não pode ser string vazia após trim)
+    if (partialData.nome !== undefined) {
+      if (partialData.nome.trim() === '') {
+        return res.status(400).json({ message: 'Nome não pode ser vazio.' });
+      }
+      partialData.nome = partialData.nome.trim();
+    }
+
+    // Validação da data
+    if (partialData.dataDeIncorporacao !== undefined) {
+      if (!isValidDate(partialData.dataDeIncorporacao)) {
+        return res.status(400).json({ message: 'Data de incorporação inválida ou no futuro.' });
+      }
+    }
+
+    // Validação do cargo (não pode ser string vazia após trim)
+    if (partialData.cargo !== undefined) {
+      if (partialData.cargo.trim() === '') {
+        return res.status(400).json({ message: 'Cargo não pode ser vazio.' });
+      }
+      partialData.cargo = partialData.cargo.trim();
+    }
+
     const updatedAgente = await agentesRepository.partialUpdate(id, partialData);
 
     if (!updatedAgente || updatedAgente.length === 0) {
@@ -152,8 +180,14 @@ async function deleteAgente(req, res) {
 async function getAgentesByCargo(req, res) {
   try {
     const { cargo } = req.query;
+    
+    if (!cargo || cargo.trim() === '') {
+      return res.status(400).json({ message: 'Cargo não pode ser vazio.' });
+    }
+    
+    const cargoLowerCase = cargo.trim().toLowerCase();
     const agentes = await agentesRepository.findAll();
-    const filteredAgentes = agentes.filter(agente => agente.cargo.toLowerCase() === cargo.toLowerCase());
+    const filteredAgentes = agentes.filter(agente => agente.cargo.toLowerCase() === cargoLowerCase);
     res.status(200).json(filteredAgentes);
   } catch (error) {
     console.error('Erro ao buscar agentes por cargo:', error);
