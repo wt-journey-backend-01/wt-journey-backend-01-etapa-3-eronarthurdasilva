@@ -39,7 +39,7 @@ async function createCaso(req, res) {
         // Verificar se o agente existe
         const agenteExiste = await agentesRepository.findById(agente_id);
         if (!agenteExiste) {
-            return res.status(400).json({ message: "Agente não encontrado" });
+            return res.status(404).json({ message: "Agente não encontrado" });
         }
 
         const casoNovo = { 
@@ -106,7 +106,7 @@ async function updateCaso(req, res) {
         // Verificar se o agente existe
         const agenteExiste = await agentesRepository.findById(agente_id);
         if (!agenteExiste) {
-            return res.status(400).json({ message: "Agente não encontrado" });
+            return res.status(404).json({ message: "Agente não encontrado" });
         }
 
         const updated = await casosRepository.update(id, { 
@@ -169,7 +169,7 @@ async function patchCaso(req, res) {
         if (updateData.agente_id) {
             const agenteExiste = await agentesRepository.findById(updateData.agente_id);
             if (!agenteExiste) {
-                return res.status(400).json({ message: "Agente não encontrado" });
+                return res.status(404).json({ message: "Agente não encontrado" });
             }
         }
 

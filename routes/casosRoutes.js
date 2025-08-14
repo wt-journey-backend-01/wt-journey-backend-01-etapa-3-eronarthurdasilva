@@ -6,6 +6,11 @@ const casosController = require('../controllers/casosController');
 router.get('/', casosController.getAllCasos);
 router.post('/', casosController.createCaso);
 
+// Rotas bônus: Filtrar por status, buscar por agente e pesquisar por palavra-chave
+router.get('/status', casosController.getCasosByStatus);
+router.get('/agente', casosController.getCasosByAgente);
+router.get('/search', casosController.searchCasos);
+
 // Rotas para um caso específico por ID
 router.get('/:id', casosController.getCasoById);
 router.put('/:id', casosController.updateCaso);

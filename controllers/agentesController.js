@@ -214,6 +214,29 @@ async function getAgentesSorted(req, res) {
   }
 }
 
+async function getCasosByAgente(req, res) {
+  try {
+    const { id } = req.params;
+    
+    // Verificar se o agente existe
+    const agente = await agentesRepository.findById(id);
+    if (!agente) {
+      return res.status(404).json({ message: "Agente não encontrado." });
+    }
+    
+    // Importar o repositório de casos
+    const casosRepository = require('../repositories/casosRepository');
+    
+    // Buscar casos do agente
+    const casos = await casosRepository.findByAgenteId(id);
+    
+    res.status(200).json(casos);
+  } catch (error) {
+    console.error('Erro ao buscar casos do agente:', error);
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
+}
+
 module.exports = {
   getAllAgentes,
   getAgenteById,
@@ -222,5 +245,6 @@ module.exports = {
   patchAgente,
   deleteAgente,
   getAgentesByCargo,
-  getAgentesSorted
+  getAgentesSorted,
+  getCasosByAgente
 };

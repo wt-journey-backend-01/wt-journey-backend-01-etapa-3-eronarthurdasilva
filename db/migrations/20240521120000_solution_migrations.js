@@ -6,13 +6,16 @@ exports.up = function(knex) {
       table.date('dataDeIncorporacao').notNullable();
       table.string('cargo', 100).notNullable();
     })
-    .createTable('casos', function (table) {
-      table.increments('id').primary();
-      table.string('titulo', 255).notNullable();
-      table.text('descricao').notNullable();
-      table.enu('status', ['aberto', 'solucionado', 'arquivado']).defaultTo('aberto');
-      table.date('data_abertura').defaultTo(knex.fn.now());
-      table.integer('agente_id').unsigned().references('id').inTable('agentes').onDelete('CASCADE');
+    .then(() => {
+      return knex.schema.createTable('casos', function (table) {
+        table.increments('id').primary();
+        table.string('titulo', 255).notNullable();
+        table.text('descricao').notNullable();
+        table.enu('status', ['aberto', 'solucionado', 'arquivado']).defaultTo('aberto');
+        table.date('data_abertura').defaultTo(knex.fn.now());
+        table.integer('agente_id').unsigned().references('id').inTable('agentes').onDelete('CASCADE');
+        ('CASCADE');
+      });
     });
 };
 

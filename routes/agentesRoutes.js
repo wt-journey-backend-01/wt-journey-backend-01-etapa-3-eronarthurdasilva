@@ -12,7 +12,6 @@ router.put('/:id', agentesController.updateAgente);
 router.delete('/:id', agentesController.deleteAgente);
 
 // Rota Bônus: Listar todos os casos de um agente específico
-// Comentado temporariamente até implementar a função no controlador
-// router.get('/:id/casos', agentesController.getCasosByAgente);
+router.get('/:id/casos', agentesController.getCasosByAgente);
 
 module.exports = router;
