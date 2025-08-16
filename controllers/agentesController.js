@@ -180,15 +180,13 @@ async function deleteAgente(req, res) {
 async function getAgentesByCargo(req, res) {
   try {
     const { cargo } = req.query;
-    
+
     if (!cargo || cargo.trim() === '') {
       return res.status(400).json({ message: 'Cargo não pode ser vazio.' });
     }
-    
-    const cargoLowerCase = cargo.trim().toLowerCase();
-    const agentes = await agentesRepository.findAll();
-    const filteredAgentes = agentes.filter(agente => agente.cargo.toLowerCase() === cargoLowerCase);
-    res.status(200).json(filteredAgentes);
+
+    const agentes = await agentesRepository.findByCargo(cargo.trim());
+    res.status(200).json(agentes);
   } catch (error) {
     console.error('Erro ao buscar agentes por cargo:', error);
     res.status(500).json({ message: 'Erro interno no servidor.' });

@@ -59,20 +59,23 @@ async function createCaso(req, res) {
 }
 
 async function getCasoById(req, res) {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const caso = await casosRepository.findById(id);
-
-        if (!caso) {
-            return res.status(404).json({ message: "Caso não encontrado." });
-        }
-        
-        return res.status(200).json(caso);
-    } catch (error) {
-        console.error('Erro ao buscar caso por ID:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+    if (isNaN(id)) {
+      return res.status(400).json({ message: 'ID inválido. Deve ser um número inteiro.' });
     }
+
+    const caso = await casosRepository.findById(id);
+    if (!caso) {
+      return res.status(404).json({ message: 'Caso não encontrado.' });
+    }
+
+    res.status(200).json(caso);
+  } catch (error) {
+    console.error('Erro ao buscar caso por ID:', error);
+    res.status(500).json({ message: 'Erro interno no servidor.' });
+  }
 }
 
 async function updateCaso(req, res) {
@@ -260,6 +263,8 @@ async function searchCasos(req, res) {
         res.status(500).json({ message: 'Erro interno no servidor.' });
     }
 }
+
+
 
 module.exports = {
     getAllCasos,

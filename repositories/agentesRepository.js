@@ -8,6 +8,10 @@ const findById = (id) => {
     return db('agentes').where({ id }).first();
 };
 
+const findByCargo = (cargo) => {
+    return db('agentes').whereRaw('LOWER(cargo) = ?', [cargo.toLowerCase()]);
+};
+
 const create = (agente) => {
     return db('agentes').insert(agente).returning('*');
 };
@@ -30,5 +34,6 @@ module.exports = {
     create,
     update,
     partialUpdate,
-    remove
+    remove,
+    findByCargo
 };

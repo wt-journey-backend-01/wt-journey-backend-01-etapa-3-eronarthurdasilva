@@ -1,5 +1,12 @@
 const db = require('../db/db');
 
+const buscarPorTermo = (termo) => {
+    return db('casos').where(builder => {
+        builder.where('titulo', 'ilike', `%${termo}%`)
+               .orWhere('descricao', 'ilike', `%${termo}%`);
+    });
+};
+
 const findAll = () => {
     return db('casos').select('*');
 };
@@ -36,5 +43,6 @@ module.exports = {
     update,
     partialUpdate,
     remove,
-    findByAgenteId
+    findByAgenteId,
+    buscarPorTermo
 };
