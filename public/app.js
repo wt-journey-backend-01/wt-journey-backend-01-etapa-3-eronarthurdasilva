@@ -195,22 +195,49 @@ function showNotification(message, type = 'info') {
 // Carrega a lista de agentes
 async function loadAgentes() {
     try {
-        const response = await fetch('http://localhost:3000/agentes');
+        const cargo = document.getElementById('filtroCargo').value.trim();
+        let url = '/agentes';
+
+        if (cargo) {
+            url += `?cargo=${encodeURIComponent(cargo)}`;
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Erro ao carregar agentes: ${response.status}`);
+        }
+
         const agentes = await response.json();
         renderAgentes(agentes);
+        populateAgentesDropdown(agentes); // Preenche o dropdown no modal
     } catch (error) {
         console.error('Erro ao carregar agentes:', error);
+        showNotification('Erro ao carregar agentes. Verifique o console para mais detalhes.', 'error');
     }
 }
 
 // Carrega a lista de casos
 async function loadCasos() {
     try {
-        const response = await fetch('http://localhost:3000/casos');
+        const status = document.getElementById('filtroStatus').value.trim();
+        let url = '/casos';
+
+        if (status) {
+            url += `?status=${encodeURIComponent(status)}`;
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Erro ao carregar casos: ${response.status}`);
+        }
+
         const casos = await response.json();
         renderCasos(casos);
     } catch (error) {
         console.error('Erro ao carregar casos:', error);
+        showNotification('Erro ao carregar casos. Verifique o console para mais detalhes.', 'error');
     }
 }
 
@@ -256,23 +283,23 @@ function renderCasos(casos) {
 // Função para deletar um caso
 async function deleteCaso(id) {
     if (!confirm('Tem certeza que deseja excluir este caso?')) return;
-    
+
     try {
         showLoader('Excluindo caso...');
         const response = await fetch(`/casos/${id}`, {
             method: 'DELETE'
         });
-        
-        if (response.ok) {
-            loadCasos();
-            showNotification('Caso excluído com sucesso!', 'success');
-        } else {
+
+        if (!response.ok) {
             const error = await response.json();
-            showNotification(`Erro: ${error.message}`, 'error');
+            throw new Error(error.message || `Erro ao excluir caso: ${response.status}`);
         }
+
+        loadCasos();
+        showNotification('Caso excluído com sucesso!', 'success');
     } catch (error) {
-        console.error('Erro ao deletar caso:', error);
-        showNotification('Erro ao deletar caso. Verifique o console para mais detalhes.', 'error');
+        console.error('Erro ao excluir caso:', error);
+        showNotification('Erro ao excluir caso. Verifique o console para mais detalhes.', 'error');
     } finally {
         hideLoader();
     }
@@ -526,36 +553,48 @@ function imprimirCasos() {
 }
 async function loadAgentes() {
     try {
-        const cargo = document.getElementById('filtroCargo').value;
+        const cargo = document.getElementById('filtroCargo').value.trim();
         let url = '/agentes';
-        
+
         if (cargo) {
             url += `?cargo=${encodeURIComponent(cargo)}`;
         }
 
         const response = await fetch(url);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Erro ao carregar agentes: ${response.status}`);
+        }
+
         const agentes = await response.json();
         renderAgentes(agentes);
         populateAgentesDropdown(agentes); // Preenche o dropdown no modal
     } catch (error) {
         console.error('Erro ao carregar agentes:', error);
+        showNotification('Erro ao carregar agentes. Verifique o console para mais detalhes.', 'error');
     }
 }
 
 async function loadCasos() {
     try {
-        const status = document.getElementById('filtroStatus').value;
+        const status = document.getElementById('filtroStatus').value.trim();
         let url = '/casos';
-        
+
         if (status) {
             url += `?status=${encodeURIComponent(status)}`;
         }
 
         const response = await fetch(url);
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Erro ao carregar casos: ${response.status}`);
+        }
+
         const casos = await response.json();
         renderCasos(casos);
     } catch (error) {
         console.error('Erro ao carregar casos:', error);
+        showNotification('Erro ao carregar casos. Verifique o console para mais detalhes.', 'error');
     }
 }
 
@@ -563,19 +602,22 @@ async function loadCasos() {
 async function buscarCasos() {
     try {
         showLoader('Buscando casos...');
-        const termo = document.getElementById('buscaCasos').value;
+        const termo = document.getElementById('buscaCasos').value.trim();
+
         if (!termo) {
             loadCasos();
             return;
         }
-        
+
         const response = await fetch(`/casos/busca?termo=${encodeURIComponent(termo)}`);
         if (!response.ok) {
-            throw new Error(`Erro ao buscar casos: ${response.status}`);
+            const error = await response.json();
+            throw new Error(error.message || `Erro ao buscar casos: ${response.status}`);
         }
+
         const casos = await response.json();
         renderCasos(casos);
-        
+
         if (casos.length === 0) {
             showNotification(`Nenhum caso encontrado para "${termo}"`, 'info');
         } else {
@@ -598,8 +640,8 @@ async function populateAgentesDropdown() {
             console.error('Elemento selectAgente não encontrado');
             return;
         }
+
         select.innerHTML = '<option value="">Selecione um agente</option>';
-        
         agentes.forEach(agente => {
             const option = document.createElement('option');
             option.value = agente.id;

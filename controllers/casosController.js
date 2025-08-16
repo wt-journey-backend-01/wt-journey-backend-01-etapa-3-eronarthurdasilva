@@ -1,61 +1,29 @@
 const casosRepository = require('../repositories/casosRepository');
-const agentesRepository = require('../repositories/agentesRepository');
 
 async function getAllCasos(req, res) {
-    try {
-        const casos = await casosRepository.findAll();
-        res.status(200).json(casos);
-    } catch (error) {
-        console.error('Erro ao buscar casos:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
-    }
+  try {
+    const casos = await casosRepository.findAll();
+    res.status(200).json(casos);
+  } catch (error) {
+    console.error('Erro ao listar casos:', error);
+    res.status(500).json({ message: 'Erro ao listar casos.' });
+  }
 }
 
 async function createCaso(req, res) {
-    try {
-        const { titulo, descricao, status, agente_id } = req.body;
-        
-        if (!titulo || !descricao || !status || !agente_id) {
-            return res.status(400).json({ message: "Todos os campos devem ser preenchidos." });
-        }
+  try {
+    const { titulo, descricao, status, agente_id } = req.body;
 
-        // Validação do título (não pode ser string vazia após trim)
-        if (titulo.trim() === '') {
-            return res.status(400).json({ message: 'Título não pode ser vazio.' });
-        }
-
-        // Validação da descrição (não pode ser string vazia após trim)
-        if (descricao.trim() === '') {
-            return res.status(400).json({ message: 'Descrição não pode ser vazia.' });
-        }
-
-        const statusValido = ["aberto", "solucionado", "arquivado"];
-        if (!statusValido.includes(status.toLowerCase())) {
-            return res.status(400).json({
-                message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
-            });
-        }
-
-        // Verificar se o agente existe
-        const agenteExiste = await agentesRepository.findById(agente_id);
-        if (!agenteExiste) {
-            return res.status(404).json({ message: "Agente não encontrado" });
-        }
-
-        const casoNovo = { 
-            titulo: titulo.trim(), 
-            descricao: descricao.trim(), 
-            status: status.toLowerCase(), 
-            agente_id,
-            data_abertura: new Date().toISOString().split('T')[0]
-        };
-        
-        const casoCriado = await casosRepository.create(casoNovo);
-        return res.status(201).json(casoCriado[0]);
-    } catch (error) {
-        console.error('Erro ao criar caso:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+    if (!titulo || !descricao || !status || !agente_id) {
+      return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
     }
+
+    const novoCaso = await casosRepository.create({ titulo, descricao, status, agente_id });
+    res.status(201).json(novoCaso);
+  } catch (error) {
+    console.error('Erro ao criar caso:', error);
+    res.status(500).json({ message: 'Erro ao criar caso.' });
+  }
 }
 
 async function getCasoById(req, res) {
@@ -63,7 +31,7 @@ async function getCasoById(req, res) {
     const { id } = req.params;
 
     if (isNaN(id)) {
-      return res.status(400).json({ message: 'ID inválido. Deve ser um número inteiro.' });
+      return res.status(400).json({ message: 'ID inválido.' });
     }
 
     const caso = await casosRepository.findById(id);
@@ -74,206 +42,98 @@ async function getCasoById(req, res) {
     res.status(200).json(caso);
   } catch (error) {
     console.error('Erro ao buscar caso por ID:', error);
-    res.status(500).json({ message: 'Erro interno no servidor.' });
+    res.status(500).json({ message: 'Erro ao buscar caso por ID.' });
   }
 }
 
 async function updateCaso(req, res) {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
+    const { titulo, descricao, status, agente_id } = req.body;
 
-        const { titulo, descricao, status, agente_id } = req.body;
-
-        if (!titulo || !descricao || !status || !agente_id) {
-            return res.status(400).json({ message: "Todos os campos precisam ser preenchidos" });
-        }
-
-        // Validação do título (não pode ser string vazia após trim)
-        if (titulo.trim() === '') {
-            return res.status(400).json({ message: 'Título não pode ser vazio.' });
-        }
-
-        // Validação da descrição (não pode ser string vazia após trim)
-        if (descricao.trim() === '') {
-            return res.status(400).json({ message: 'Descrição não pode ser vazia.' });
-        }
-
-        const statusValido = ["aberto", "solucionado", "arquivado"];
-
-        if (!statusValido.includes(status.toLowerCase())) {
-            return res.status(400).json({
-                message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
-            });
-        }
-
-        // Verificar se o agente existe
-        const agenteExiste = await agentesRepository.findById(agente_id);
-        if (!agenteExiste) {
-            return res.status(404).json({ message: "Agente não encontrado" });
-        }
-
-        const updated = await casosRepository.update(id, { 
-            titulo: titulo.trim(), 
-            descricao: descricao.trim(), 
-            status: status.toLowerCase(), 
-            agente_id 
-        });
-
-        if (!updated || updated.length === 0) {
-            return res.status(404).json({ message: "Caso não encontrado" });
-        }
-
-        return res.status(200).json(updated[0]);
-    } catch (error) {
-        console.error('Erro ao atualizar caso:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+    if (!titulo || !descricao || !status || !agente_id) {
+      return res.status(400).json({ message: 'Todos os campos são obrigatórios.' });
     }
-}
 
-async function patchCaso(req, res) {
-    try {
-        const { id } = req.params;
-        const updateData = req.body;
-
-        // Verificar se o payload não está vazio
-        if (Object.keys(updateData).length === 0) {
-            return res.status(400).json({ message: "Nenhum dado fornecido para atualização." });
-        }
-
-        // Validação do título (não pode ser string vazia após trim)
-        if (updateData.titulo !== undefined) {
-            if (updateData.titulo.trim() === '') {
-                return res.status(400).json({ message: 'Título não pode ser vazio.' });
-            }
-            updateData.titulo = updateData.titulo.trim();
-        }
-
-        // Validação da descrição (não pode ser string vazia após trim)
-        if (updateData.descricao !== undefined) {
-            if (updateData.descricao.trim() === '') {
-                return res.status(400).json({ message: 'Descrição não pode ser vazia.' });
-            }
-            updateData.descricao = updateData.descricao.trim();
-        }
-
-        if (updateData.status) {
-            const statusValido = ["aberto", "solucionado", "arquivado"];
-
-            if (!statusValido.includes(updateData.status.toLowerCase())) {
-                return res.status(400).json({
-                    message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
-                });
-            }
-
-            updateData.status = updateData.status.toLowerCase();
-        }
-
-        // Verificar se o agente existe, se for fornecido
-        if (updateData.agente_id) {
-            const agenteExiste = await agentesRepository.findById(updateData.agente_id);
-            if (!agenteExiste) {
-                return res.status(404).json({ message: "Agente não encontrado" });
-            }
-        }
-
-        const updated = await casosRepository.partialUpdate(id, updateData);
-
-        if (!updated || updated.length === 0) {
-            return res.status(404).json({ message: "Caso não encontrado" });
-        }
-
-        return res.status(200).json(updated[0]);
-    } catch (error) {
-        console.error('Erro ao atualizar parcialmente caso:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
-    }
+    const casoAtualizado = await casosRepository.update(id, { titulo, descricao, status, agente_id });
+    res.status(200).json(casoAtualizado);
+  } catch (error) {
+    console.error('Erro ao atualizar caso:', error);
+    res.status(500).json({ message: 'Erro ao atualizar caso.' });
+  }
 }
 
 async function deleteCaso(req, res) {
-    try {
-        const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-        const deleted = await casosRepository.remove(id);
-
-        if (!deleted) {
-            return res.status(404).json({ message: "Caso não encontrado" });
-        }
-
-        return res.status(204).end();
-    } catch (error) {
-        console.error('Erro ao deletar caso:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+    const casoDeletado = await casosRepository.remove(id);
+    if (!casoDeletado) {
+      return res.status(404).json({ message: 'Caso não encontrado.' });
     }
-}
 
-async function getCasosByAgente(req, res) {
-    try {
-        const { agente_id } = req.query;
-        const casos = await casosRepository.findByAgenteId(agente_id);
-        res.status(200).json(casos);
-    } catch (error) {
-        console.error('Erro ao buscar casos por agente:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
-    }
+    res.status(204).end();
+  } catch (error) {
+    console.error('Erro ao deletar caso:', error);
+    res.status(500).json({ message: 'Erro ao deletar caso.' });
+  }
 }
 
 async function getCasosByStatus(req, res) {
-    try {
-        const { status } = req.query;
-        
-        if (!status || status.trim() === '') {
-            return res.status(400).json({ message: 'Status não pode ser vazio.' });
-        }
-        
-        const statusValido = ["aberto", "solucionado", "arquivado"];
-        const statusLowerCase = status.toLowerCase().trim();
-        
-        if (!statusValido.includes(statusLowerCase)) {
-            return res.status(400).json({
-                message: "Status inválido. Use 'aberto', 'solucionado' ou 'arquivado'."
-            });
-        }
-        
-        const casos = await casosRepository.findAll();
-        const filteredCasos = casos.filter(caso => caso.status === statusLowerCase);
-        res.status(200).json(filteredCasos);
-    } catch (error) {
-        console.error('Erro ao buscar casos por status:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+  try {
+    const { status } = req.query;
+
+    if (!status) {
+      return res.status(400).json({ message: 'Status é obrigatório.' });
     }
+
+    const casos = await casosRepository.findByStatus(status);
+    res.status(200).json(casos);
+  } catch (error) {
+    console.error('Erro ao buscar casos por status:', error);
+    res.status(500).json({ message: 'Erro ao buscar casos por status.' });
+  }
+}
+
+async function getCasosByAgente(req, res) {
+  try {
+    const { agente_id } = req.query;
+
+    if (!agente_id) {
+      return res.status(400).json({ message: 'ID do agente é obrigatório.' });
+    }
+
+    const casos = await casosRepository.findByAgenteId(agente_id);
+    res.status(200).json(casos);
+  } catch (error) {
+    console.error('Erro ao buscar casos por agente:', error);
+    res.status(500).json({ message: 'Erro ao buscar casos por agente.' });
+  }
 }
 
 async function searchCasos(req, res) {
-    try {
-        const { q } = req.query;
-        
-        if (!q || q.trim() === '') {
-            return res.status(400).json({ message: 'Termo de busca não pode ser vazio.' });
-        }
-        
-        const searchTerm = q.trim().toLowerCase();
-        const casos = await casosRepository.findAll();
-        const filteredCasos = casos.filter(caso => 
-            caso.titulo.toLowerCase().includes(searchTerm) || 
-            caso.descricao.toLowerCase().includes(searchTerm)
-        );
-        res.status(200).json(filteredCasos);
-    } catch (error) {
-        console.error('Erro ao pesquisar casos:', error);
-        res.status(500).json({ message: 'Erro interno no servidor.' });
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ message: 'Palavra-chave é obrigatória.' });
     }
+
+    const casos = await casosRepository.buscarPorTermo(q);
+    res.status(200).json(casos);
+  } catch (error) {
+    console.error('Erro ao buscar casos por palavra-chave:', error);
+    res.status(500).json({ message: 'Erro ao buscar casos por palavra-chave.' });
+  }
 }
 
-
-
 module.exports = {
-    getAllCasos,
-    createCaso,
-    getCasoById,
-    updateCaso,
-    patchCaso,
-    deleteCaso,
-    getCasosByAgente,
-    getCasosByStatus,
-    searchCasos
+  getAllCasos,
+  createCaso,
+  getCasoById,
+  updateCaso,
+  deleteCaso,
+  getCasosByStatus,
+  getCasosByAgente,
+  searchCasos
 };
